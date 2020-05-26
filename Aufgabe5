@@ -1,0 +1,67 @@
+#-*- coding: utf-8 -*-
+import numpy as np
+import matplotlib.pyplot as plt
+
+def klassischesrungekutta(f, x_old, function_parameters, h):
+	'''
+	klassisches Runge-Kutta-Verfahren mit:
+	f 			beliebige Funktion
+	x_old			x-Wert des letzten Schritts
+	function_parameters	Liste der Parameter der Funktion
+	h			Schrittweite
+	k1			zu Beginn des Intervalls
+	k2, k3			in der Mitte des Intervalls
+	k4			am Ende des Intervalls
+	'''
+	k1 = f(x_old, *function_parameters)
+	k2 = f(x_old + (h/2)*k1, *function_parameters)
+	k3 = f(x_old + (h/2)*k2, *function_parameters)
+	k4 = f(x_old + h*k3, *function_parameters)
+	return x_old + h/6(k1 + 2*k2 + 2*k3 + k4)
+
+def räuberbeute(x_old, epsilon1, epsilon2, gamma1, gamma2):
+	'''
+	Rechte-Hand-Seite der Differentialgleichung dp1/dt = p1(epsilon1 - gamma1*p2) und dp2/dt = -p2(epsilon2 - gamma2*p1)
+	epsilon1	Vermehrung von p1
+	epsilon2	Rückgang von p2
+	gamma1		Rückgang von p1
+	gamma2		Vermehrung von p2
+	x_old		x-Wert des letzen Schrittes
+	'''
+	p1 = x_old[0]
+	p2 = x_old[1]
+	p1punkt = p1(epsilon1 - gamma1*p2)
+	p2punkt = -p2(epsilon2 - gamma2*p1)
+	return np.array([p1punkt, p2punkt])
+
+p1_0 = 1		#Anfangswert p1
+p2_0 = 2		#Anfangswert p2
+u = np.array([p1_0, p2_0])
+
+epsilon1 = 2.0
+epsilon2 = 0.8
+gamma1 = 0.02
+gamma2 = 0.0002
+h = 0.025
+
+t = np.arange(0., 500, h) #Array mit Zeitpunkten tj im Abstand h
+
+u_klassischesrungekutta = [u]	#Lösungsliste mit einem Element, u
+for t in t[1:]:
+	u_klassischesrungekutta += [klassischesrungekutta(räuberbeute, u_klassischesrungekutta[-1], [epsilon1, epsilon2, gamma1, gamma2], h)] #nächster Schritt des klassischen Runge-Kutta-Verfahrens an Liste angehängt
+
+u_klassischesrungekutta = np.array(u_klassischesrungekutta) #Liste zur Array gemacht
+plt.plot(t, u_klassischesrungekutta[:, 0], label = 'klassisches Runge-Kutta-Verfahren Zeitreihe für p1')
+plt.xlabel('t')
+plt.ylabel('p1')
+plt.show
+
+plt.plot(t, u_klassischesrungekutta[:, 0], label = 'klassisches Runge-Kutta-Verfahren Zeitreihe für p2')
+plt.xlabel('t')
+plt.ylabel('p2')
+plt.show
+
+plt.plot(u_klassischesrungekutta[:, 0], u_klassischesrungekutta[:, 1], label = 'klassisches Runge-Kutta-Verfahren Phasenraumtrajektorie')
+plt.xlabel('p1')
+plt.ylabel('p2')
+plt.show
