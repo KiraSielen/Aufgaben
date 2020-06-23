@@ -1,0 +1,123 @@
+#-*- coding: utf-8 -*-
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
+
+def rkf4(f, x_old, function_parameters, h):
+	'''
+	Runge-Kutta-Verfahren mit:
+	f 			beliebige Funktion
+	x_old			x-Wert des letzten Schritts
+	function_parameters	Liste der Parameter der Funktion
+	h			Schrittweite
+	k1			zu Beginn des Intervalls
+	k2, k3, k4, k5		in der Mitte des Intervalls
+	k6                     	am Ende des Intervalls
+	'''
+	k1 = f(x_old, *function_parameters)
+	k2 = f(x_old + (h/5)*k1, *function_parameters)
+	k3 = f(x_old + h*((3/32)*k1 + (9/32)*k2, *function_parameters)
+	k4 = f(x_old + h*((1932/2197)*k1 - (7200/2197)*k2 + (7296/2197)*k3), *function_parameters)
+	k5 = f(x_old + h*((439/216)*k1 - (8)*k2 + (3680/513)*k3 - (845/4104)*k4))
+	k6 = f(x_old + h((-8/27)*k1 + 2*k2 - (3544/2565)*k3 + (1859/4104)*k4 - (11/40)*k5))
+	k = np.array([k1, k2, k3, k4, k5, k6])
+	return x_old + h/6*((25/216)*k1 + 0*k2 + (1408/2565)*k3 + (2197/4104)*k4 - (1/5)*k5 + 0*k6)
+	
+def rkf5(f, x_old, function_parameters, h):
+	'''
+	Runge-Kutta-Verfahren mit:
+	f 			beliebige Funktion
+	x_old			x-Wert des letzten Schritts
+	function_parameters	Liste der Parameter der Funktion
+	h			Schrittweite
+	k1			zu Beginn des Intervalls
+	k2, k3, k4, k5		in der Mitte des Intervalls
+	k6                    	am Ende des Intervalls
+	'''
+	k1 = f(x_old, *function_parameters)
+	k2 = f(x_old + (h/5)*k1, *function_parameters)
+	k3 = f(x_old + h*((3/32)*k1 + (9/32)*k2, *function_parameters)
+	k4 = f(x_old + h*((1932/2197)*k1 - (7200/2197)*k2 + (7296/2197)*k3), *function_parameters)
+	k5 = f(x_old + h*((439/216)*k1 - (8)*k2 + (3680/513)*k3 - (845/4104)*k4))
+	k6 = f(x_old + h((-8/27)*k1 + 2*k2 - (3544/2565)*k3 + (1859/4104)*k4 - (11/40)*k5))
+	k = np.array([k1, k2, k3, k4, k5, k6])
+	return x_old + h/6*((26/135)*k1 + 0*k2 + (6656/12825)*k3 + (28561/56430)*k4 - (9/50)*k5 + (2/55)*k6)
+
+def saltzmann(x_old, p, q, r):
+	'''
+	Rechte-Hand-Seite der Differentialgleichung dx/dt = -x - y und dy/dt = p*z + r*y - (z**2)*y und dz/dt = q*x - q*z
+	p		Parameter
+	q		Parameter
+	r		Parameter
+	x_old		x-Wert des letzten Schrittes
+	'''
+	x = x_old[0]
+	y = x_old[1]
+	z = x_old[2]
+	dxdt = -x - y
+	dydt = p*z + r*y - (z**2)*y
+	dzdt = q*x - q*z
+	return np.array([dxdt, dydt, dzdt])
+
+p = 0.01
+q = 1.5
+r = 1.5
+
+x_0 = - (r - p)**0.5 + 0.0001	#Anfangswert x(0)
+y_0 = (r - p)**0.5		#Anfangswert y(0)
+z_0 = - (r - p)**0.5		#Anfangswert z(0)
+u = np.array([x_0, y_0, z_0])
+
+h = 0.025
+t = np.arange(0., 500) #Array mit Zeitpunkten tj
+
+c = np.array([25.0/216.0, 0.0, 1408.0/2565.0, 2197.0/4104.0, (-1.0)/5.0, 0.0]) # coefficients for 4th order method
+c_star = np.array([16.0/135.0, 0.0, 6656.0/12825.0, 28561.0/56430.0, (-9.0)/50.0, 2.0/55.0]) # coefficients for 5th order method
+i = 0
+n = 0
+beta = 1
+epsilontol = 1 #Toleranzwert
+
+Schrittweiten = [h]	#Liste der Schrittweiten
+u_rkf4 = [u]	#Lösungsliste mit einem Element, u
+u_rkf5 = [u]	#Lösungsliste mit einem Element, u
+
+while tj in t[1:]:
+	u_rkf4 += [rkf4(saltzmann, u_rkf4[-1], [r, p, q], Schrittweite[-1])] #nächster Schritt des Runge-Kutta-Verfahrens an Liste angehängt
+	u_rkf5 += [rkf5(saltzmann, u_rkf5[-1], [r, p, q], Schrittweite[-1])] #nächster Schritt des Runge-Kutta-Verfahrens an Liste angehängt
+	while i<6:	#Fehler berechnen
+    		n = u_rkf4[-1] - u_rkf5[-1]
+    		i = i+1
+	epsilon = n 	#der Fehler
+	if epsilon > epsilontol:	#neue Schritttweite berechnen
+		h_opt = beta*h*((epsilontol/epsilon)**0,2)
+		elif epsilon = epsilontol:
+			h_opt = beta*h*((epsilontol/epsilon)**0,2)
+		else:
+			h_opt = beta*h*((epsilontol/epsilon)**0,025)
+		Schrittweiten += [h_opt]
+
+
+u_rkf5 = np.array(u_rkf5) #Liste zur Array gemacht
+plt.plot(t, u_rkf5[:, 0], label = 'Runge-Kutta-Verfahren, Zeitreihe für x')
+plt.xlabel('t')
+plt.ylabel('x')
+plt.show()
+
+plt.plot(t, u_rkf5[:, 0], label = 'Runge-Kutta-Verfahren, Zeitreihe für y')
+plt.xlabel('t')
+plt.ylabel('y')
+plt.show()
+
+plt.plot(t, u_rkf5[:, 0], label = 'Runge-Kutta-Verfahren, Zeitreihe für z')
+plt.xlabel('t')
+plt.ylabel('z')
+plt.show()
+
+plt.axes(projection='3d')
+plt.plot(u_rkf5[:, 0], u_rkf5[:, 1], label = 'Runge-Kutta-Verfahren, Phasenraumtrajektorie')
+plt.xlabel('x')
+plt.ylabel('y')
+#zaxis_title = 'z'
+#plt.zlabel('z')
+plt.show()
